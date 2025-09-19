@@ -1,43 +1,68 @@
 # CreativePathway ML Service Dockerfile
-FROM python:3.11-slim
+# Multi-stage build for security and size optimization
+
+FROM python:3.11-slim AS builder
+
+# Set environment variables to reduce Python bytecode and buffer issues
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Set working directory
+WORKDIR /app
+
+# Install build dependencies only in builder stage
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Create virtual environment and install dependencies as wheels
+RUN python -m venv /opt/venv \
+    && /opt/venv/bin/pip install --upgrade pip setuptools wheel \
+    && /opt/venv/bin/pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+
+# Production runtime stage
+FROM python:3.11-slim AS runtime
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 ENV TF_CPP_MIN_LOG_LEVEL=2
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Create non-root user with fixed UID/GID for security
+RUN useradd --create-home --shell /bin/bash --uid 1001 --gid 1001 mluser
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Copy virtual environment from builder
+COPY --from=builder --chown=mluser:mluser /opt/venv /opt/venv
 
-# Copy source code
-COPY . .
+# Copy application source code
+COPY --chown=mluser:mluser . .
 
-# Create necessary directories
-RUN mkdir -p models logs
+# Create necessary directories with proper permissions
+RUN mkdir -p models logs && chown -R mluser:mluser models logs /app
 
-# Create non-root user
-RUN useradd --create-home --shell /bin/bash mluser && \
-    chown -R mluser:mluser /app
+# Switch to non-root user
 USER mluser
 
 # Expose port
 EXPOSE 5000
 
-# Health check
+# Health check with proper timeout and retries
 HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:5000/api/ml/health || exit 1
+    CMD curl -f --max-time 10 http://127.0.0.1:5000/api/ml/health || exit 1
 
 # Start the application
 CMD ["python", "app.py"]

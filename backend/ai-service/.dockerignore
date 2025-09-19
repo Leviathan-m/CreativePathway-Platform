@@ -1,0 +1,87 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Git
+.git/
+.gitignore
+
+# Logs and temporary files
+logs/
+*.log
+tmp/
+temp/
+
+# Testing
+test/
+tests/
+*.test.py
+*.spec.py
+pytest.ini
+.pytest_cache/
+
+# Documentation
+README.md
+docs/
+
+# Model artifacts (will be mounted as volume)
+models/
+*.h5
+*.pb
+*.onnx
+*.pkl
+*.joblib
+
+# Jupyter notebooks (optional)
+*.ipynb
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage.xml
+*.cover

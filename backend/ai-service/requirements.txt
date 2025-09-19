@@ -1,9 +1,64 @@
+# Core web framework
 Flask==2.3.3
+Werkzeug==2.3.7
 Flask-CORS==4.0.0
+
+# Data science and ML libraries
 numpy==1.24.3
 pandas==2.0.3
 scikit-learn==1.3.0
+
+# Deep learning framework
 tensorflow==2.13.0
+tensorflow-cpu==2.13.0; sys_platform == 'darwin' or sys_platform == 'win32'
+
+# Scientific computing
+scipy==1.11.3
+matplotlib==3.7.2
+
+# HTTP client
 requests==2.31.0
+
+# Configuration management
 python-dotenv==1.0.0
+
+# Production WSGI server
 gunicorn==21.2.0
+
+# Logging and monitoring
+structlog==23.1.0
+
+# Security and validation
+cryptography==41.0.4
+PyJWT==2.8.0
+
+# Data validation
+pydantic==2.4.2
+
+# Performance optimization
+joblib==1.3.2
+
+# Model serialization
+pickle5==0.0.12; python_version < "3.8"
+cloudpickle==2.2.1
+
+# Development and testing (optional for production)
+pytest==7.4.2
+pytest-cov==4.1.0
+black==23.9.1
+flake8==6.0.0
+mypy==1.5.1
+
+# Health check and monitoring
+psutil==5.9.5
+
+# Database connectivity (if needed)
+SQLAlchemy==2.0.23
+alembic==1.12.1
+
+# Caching
+redis==4.6.0
+
+# Async support
+aiohttp==3.8.6
+asyncio-mqtt==0.13.1

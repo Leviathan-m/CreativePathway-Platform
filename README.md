@@ -1,6 +1,9 @@
 # 🚀 CreativePathway Platform
 
 <p align="center">
+  <img src="https://img.shields.io/github/actions/workflow/status/Leviathan-m/CreativePathway-Platform/ci.yml?branch=main&style=flat-square" alt="CI Status"/>
+  <img src="https://img.shields.io/github/actions/workflow/status/Leviathan-m/CreativePathway-Platform/ci-api.yml?branch=main&style=flat-square&label=API%20CI" alt="API CI"/>
+  <img src="https://img.shields.io/github/actions/workflow/status/Leviathan-m/CreativePathway-Platform/ci-ml.yml?branch=main&style=flat-square&label=ML%20CI" alt="ML CI"/>
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/>
   <img src="https://img.shields.io/badge/Docker-Ready-blue.svg" alt="Docker Ready"/>
   <img src="https://img.shields.io/badge/Research--Based-Park%20et%20al.%202017-green.svg" alt="Research-Based"/>
@@ -8,6 +11,7 @@
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB.svg" alt="Python"/>
   <img src="https://img.shields.io/badge/React-18+-61DAFB.svg" alt="React"/>
   <img src="https://img.shields.io/badge/TensorFlow-2.13+-FF6F00.svg" alt="TensorFlow"/>
+  <img src="https://img.shields.io/badge/Security-Trivy%20Scanned-blue.svg" alt="Security Scanned"/>
 </p>
 
 <p align="center">
@@ -231,8 +235,8 @@ graph LR
 ### ⚡ **Option 1: One-Click Docker Setup**
 ```bash
 # Clone and launch
-git clone https://github.com/your-username/creative-pathway-platform.git
-cd creative-pathway-platform
+git clone https://github.com/Leviathan-m/CreativePathway-Platform.git
+cd CreativePathway-Platform
 
 # Start everything automatically
 docker-compose up -d
@@ -619,7 +623,7 @@ International Education Studies, 10(5), 167-180. doi:10.5539/ies.v10n5p167
 ### 🛠️ **Contributing**
 ```bash
 # 1. Fork the repository
-git clone https://github.com/your-username/creative-pathway-platform.git
+git clone https://github.com/Leviathan-m/CreativePathway-Platform.git
 
 # 2. Create feature branch
 git checkout -b feature/amazing-enhancement
@@ -630,6 +634,12 @@ git checkout -b feature/amazing-enhancement
 # 4. Submit pull request
 git push origin feature/amazing-enhancement
 ```
+
+**🔄 CI/CD Pipeline:**
+- All PRs automatically run linting, testing, and security scanning
+- Docker images are built and security scanned
+- Dependencies are reviewed for vulnerabilities
+- Code coverage reports are generated
 
 ---
 
@@ -675,7 +685,7 @@ Copyright (c) 2024 CreativePathway Team
   title = {CreativePathway Platform: AI-Powered Creativity Development},
   author = {CreativePathway Team},
   year = {2024},
-  url = {https://github.com/your-username/creative-pathway-platform},
+  url = {https://github.com/Leviathan-m/CreativePathway-Platform},
   note = {Based on Park et al. (2017) research framework}
 }
 ```
@@ -699,7 +709,7 @@ Copyright (c) 2024 CreativePathway Team
 #### **APA Style Citation**
 ```
 CreativePathway Team. (2024). CreativePathway Platform: AI-Powered Creativity Development
-[Computer software]. https://github.com/your-username/creative-pathway-platform
+[Computer software]. https://github.com/Leviathan-m/CreativePathway-Platform
 
 Park, J., Kim, M., & Jang, S. (2017). Analysis of Factors Influencing Creative Personality of Elementary School Students.
 International Education Studies, 10(5), 167-180. https://doi.org/10.5539/ies.v10n5p167

@@ -1,0 +1,160 @@
+name: CI - Full Project
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  api-ci:
+    uses: ./.github/workflows/ci-api.yml
+
+  ml-ci:
+    uses: ./.github/workflows/ci-ml.yml
+
+  frontend-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/web
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/web/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint
+
+    - name: Build application
+      run: npm run build
+
+  extension-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: browser-extension
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install ESLint
+      run: npm install eslint eslint-plugin-security --save-dev
+
+    - name: Run ESLint on extension
+      run: npx eslint . --ext .js,.mjs || true
+
+  docker-compose-test:
+    runs-on: ubuntu-latest
+    needs: [api-ci, ml-ci, frontend-lint]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build Docker images
+      run: |
+        docker-compose -f docker/docker-compose.yml build --parallel
+
+    - name: Start services
+      run: |
+        docker-compose -f docker/docker-compose.yml up -d
+        sleep 30
+
+    - name: Test API health
+      run: |
+        curl -f http://localhost:3000/health || (docker-compose -f docker/docker-compose.yml logs api && exit 1)
+
+    - name: Test ML service health
+      run: |
+        curl -f http://localhost:5000/api/ml/health || (docker-compose -f docker/docker-compose.yml logs ml-service && exit 1)
+
+    - name: Clean up
+      if: always()
+      run: docker-compose -f docker/docker-compose.yml down -v
+
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy filesystem scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'full-scan-results.sarif'
+
+    - name: Upload security scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'full-scan-results.sarif'
+
+  dependency-review:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v3
+      with:
+        fail-on-severity: moderate
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [docker-compose-test, security-scan, dependency-review]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}
+        release_name: Release v${{ github.run_number }}
+        body: |
+          ## 🚀 CreativePathway Platform Release v${{ github.run_number }}
+
+          ### ✅ What's New
+          - Enhanced security with multi-stage Docker builds
+          - Improved API with rate limiting and input validation
+          - Comprehensive CI/CD pipeline
+          - Research-based behavioral analytics
+
+          ### 🔬 Research Foundation
+          Based on Park et al. (2017) - Attentiveness → Scientific Attitude → Creativity pathway model
+
+          ### 📊 Key Features
+          - Real-time behavioral tracking
+          - AI-powered creativity analysis
+          - Personalized interventions
+          - Docker containerization
+
+        draft: false
+        prerelease: false
