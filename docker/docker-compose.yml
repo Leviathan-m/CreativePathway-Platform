@@ -1,0 +1,167 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # DATABASE SERVICES
+  # ========================================
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: creativepathway-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: creativepathway
+      POSTGRES_USER: pathway_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pathway_secure_password_2024}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - creativepathway-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pathway_user -d creativepathway"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: creativepathway-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secure_password_2024}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - creativepathway-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ========================================
+  # APPLICATION SERVICES
+  # ========================================
+
+  # Node.js Backend API
+  api:
+    build:
+      context: ../backend/api
+      dockerfile: Dockerfile
+    container_name: creativepathway-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      DATABASE_URL: postgresql://pathway_user:${POSTGRES_PASSWORD:-pathway_secure_password_2024}@postgres:5432/creativepathway
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_password_2024}@redis:6379
+      ML_SERVICE_URL: http://ml-service:5000
+      JWT_SECRET: ${JWT_SECRET:-creativepathway_jwt_secret_2024}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../backend/api:/app
+      - /app/node_modules
+      - ../backend/api/logs:/app/logs
+    networks:
+      - creativepathway-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Python ML Service
+  ml-service:
+    build:
+      context: ../backend/ai-service
+      dockerfile: Dockerfile
+    container_name: creativepathway-ml
+    restart: unless-stopped
+    environment:
+      FLASK_ENV: ${FLASK_ENV:-production}
+      FLASK_APP: app.py
+      DATABASE_URL: postgresql://pathway_user:${POSTGRES_PASSWORD:-pathway_secure_password_2024}@postgres:5432/creativepathway
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_password_2024}@redis:6379
+      MODEL_DIR: /app/models
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      TF_CPP_MIN_LOG_LEVEL: 2
+    ports:
+      - "${ML_PORT:-5000}:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../backend/ai-service:/app
+      - ml_models:/app/models
+      - ../backend/ai-service/logs:/app/logs
+    networks:
+      - creativepathway-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/ml/health"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+
+  # ========================================
+  # FRONTEND SERVICES
+  # ========================================
+
+  # React Dashboard
+  dashboard:
+    build:
+      context: ../frontend/web
+      dockerfile: Dockerfile
+    container_name: creativepathway-dashboard
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:3000}
+      REACT_APP_WS_URL: ${REACT_APP_WS_URL:-ws://localhost:3000}
+      REACT_APP_ML_SERVICE_URL: ${REACT_APP_ML_SERVICE_URL:-http://localhost:5000}
+      REACT_APP_ENVIRONMENT: ${NODE_ENV:-production}
+      REACT_APP_VERSION: 1.0.0
+    ports:
+      - "${DASHBOARD_PORT:-3001}:80"
+    depends_on:
+      - api
+      - ml-service
+    volumes:
+      - ../frontend/web:/app
+      - /app/node_modules
+      - /app/build
+    networks:
+      - creativepathway-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  ml_models:
+    driver: local
+
+networks:
+  creativepathway-network:
+    driver: bridge
+    name: creativepathway-network
