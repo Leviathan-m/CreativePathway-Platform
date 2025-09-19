@@ -130,7 +130,7 @@ app.get('/api/docs', (req, res) => {
 // Behavioral data endpoint with validation
 app.post('/api/v1/behavioral-data', validateBehavioralData, async (req, res) => {
     try {
-        const { userId, type, data, metadata } = req.validatedData;
+        const { userId, type, data } = req.validatedData;
 
         // Log the behavioral data submission
         logger.info('Behavioral data received', {

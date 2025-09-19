@@ -56,7 +56,7 @@ const asyncHandler = (fn) => (req, res, next) => {
 };
 
 // Global error handler middleware
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
     // Log the error
     logError(err, req, {
         userId: req.body?.userId || 'anonymous',
