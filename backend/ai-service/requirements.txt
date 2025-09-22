@@ -33,7 +33,8 @@ cryptography==41.0.4
 PyJWT==2.8.0
 
 # Data validation
-pydantic==2.4.2
+pydantic==1.10.13
+typing-extensions==4.5.0
 
 # Performance optimization
 joblib==1.3.2
