@@ -19,10 +19,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy requirements file
 COPY requirements.txt .
 
-# Create virtual environment and install dependencies as wheels
+# Create virtual environment and install dependencies
 RUN python -m venv /opt/venv \
-    && /opt/venv/bin/pip install --upgrade pip setuptools wheel \
-    && /opt/venv/bin/pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+    && /opt/venv/bin/pip install --upgrade pip \
+    && /opt/venv/bin/pip install -r requirements.txt
 
 # Production runtime stage
 FROM python:3.10-slim AS runtime
