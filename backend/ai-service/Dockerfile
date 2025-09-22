@@ -1,7 +1,7 @@
 # CreativePathway ML Service Dockerfile
 # Multi-stage build for security and size optimization
 
-FROM python:3.11-slim AS builder
+FROM python:3.10-slim AS builder
 
 # Set environment variables to reduce Python bytecode and buffer issues
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -25,7 +25,7 @@ RUN python -m venv /opt/venv \
     && /opt/venv/bin/pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 # Production runtime stage
-FROM python:3.11-slim AS runtime
+FROM python:3.10-slim AS runtime
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -43,7 +43,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Create non-root user with fixed UID/GID for security
-RUN useradd --create-home --shell /bin/bash --uid 1001 --gid 1001 mluser
+RUN groupadd --gid 1001 mluser && \
+    useradd --create-home --shell /bin/bash --uid 1001 --gid 1001 mluser
 
 # Copy virtual environment from builder
 COPY --from=builder --chown=mluser:mluser /opt/venv /opt/venv
