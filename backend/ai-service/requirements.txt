@@ -61,4 +61,4 @@ redis==4.6.0
 
 # Async support
 aiohttp==3.8.6
-asyncio-mqtt==0.13.1
+asyncio-mqtt==0.16.2
