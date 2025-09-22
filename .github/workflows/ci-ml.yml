@@ -12,6 +12,10 @@ on:
       - 'backend/ai-service/**'
       - '.github/workflows/ci-ml.yml'
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -86,6 +90,7 @@ jobs:
         python -m pytest --cov=. --cov-report=xml --cov-report=term-missing
 
     - name: Upload coverage reports
+      if: false
       uses: codecov/codecov-action@v3
       with:
         file: ./backend/ai-service/coverage.xml
@@ -187,9 +192,9 @@ jobs:
         scan-ref: 'creative-pathway-ml-scan'
         format: 'sarif'
         output: 'docker-trivy-results.sarif'
-
+    # Disable SARIF upload to avoid permission issues on forks
     - name: Upload Docker scan results
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
+      if: false
+      uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: 'docker-trivy-results.sarif'

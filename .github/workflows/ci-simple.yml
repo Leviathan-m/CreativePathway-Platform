@@ -1,0 +1,32 @@
+name: CI - Simple Test
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/api/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      working-directory: backend/api
+      run: npm ci
+
+    - name: Run basic test
+      working-directory: backend/api
+      run: |
+        echo "🎉 CI is working!"
+        node --version
+        npm --version
+        ls -la
